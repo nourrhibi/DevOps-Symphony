@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+    db:
+        image: mysql:5.7
+        container_name: db_docker_symfony
+        environment:
+            - MYSQL_ROOT_PASSWORD=mypassword
+            - MYSQL_PASSWORD=mypassword
+            - MYSQL_DATABASE=blog
+            - MYSQL_USER=user
+        volumes:
+            - db-data:/var/lib/mysql
+    phpmyadmin:
+        image: phpmyadmin
+        container_name: phpmyadmin_docker_symfony
+        restart: always
+        depends_on:
+            - db
+        ports:
+            - 801:80
+        environment:
+         MYSQL_ROOT_PASSWORD: mypassword #(Required) set the password for the root superuser account.
+         PMA_HOST: db   # define the address/hostname of the mysql server eg mysql container name.
+         PMA_USER: root # this is the root user to login on startup
+         PMA_PASSWORD: mypassword # use the root password to login on startup.
+    web:
+        image: nourrhibi/symfonydocker:1.1
+        container_name: web_docker_symfony
+        ports:
+            - 800:80
+        entrypoint: [ "bash", "-c", " php bin/console make:migration && php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration && exec apache2-foreground "]
+        environment:
+            DATABASE_URL: mysql://root:mypassword@db:3306/blog?serverVersion=5.7
+volumes:
+    db-data:
+
